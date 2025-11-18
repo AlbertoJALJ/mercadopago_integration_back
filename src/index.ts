@@ -126,12 +126,6 @@ app.post('/api/orders', async (req, res) => {
     const preference = new Preference(client);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4321';
     
-    console.log('📋 Creando preferencia con back_urls:', {
-      success: `${frontendUrl}/success?order_id=${order.id}`,
-      failure: `${frontendUrl}/failure?order_id=${order.id}`,
-      pending: `${frontendUrl}/pending?order_id=${order.id}`,
-    });
-    
     const result = await preference.create({
       body: {
         items: mpItems,
@@ -154,15 +148,6 @@ app.post('/api/orders', async (req, res) => {
         notification_url: process.env.WEBHOOK_URL || `http://localhost:${PORT}/api/webhook`,
       },
     });
-    
-    console.log('✅ Preferencia creada:', result.id);
-    console.log('🔍 Detalles de la preferencia:', JSON.stringify({
-      id: result.id,
-      init_point: result.init_point,
-      sandbox_init_point: result.sandbox_init_point,
-      back_urls: result.back_urls,
-      auto_return: result.auto_return,
-    }, null, 2));
 
     // Update order with preference ID
     await updateOrderPreferenceId(order.id, result.id!);
@@ -302,8 +287,6 @@ app.post('/api/webhook', async (req, res) => {
       }
 
       await updateOrderStatus(orderId, orderStatus, paymentId.toString(), paymentStatus);
-      
-      console.log(`✅ Order ${orderId} updated: status=${orderStatus}, payment_status=${paymentStatus}`);
     }
 
     res.sendStatus(200);
