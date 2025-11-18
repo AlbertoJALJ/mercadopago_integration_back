@@ -286,9 +286,18 @@ Ver documentación completa en: `docs/testing-webhooks.md`
 
 ## 📝 Scripts
 
+### Desarrollo
 - `pnpm dev` - Servidor con hot reload (tsx watch)
 - `pnpm build` - Compilar TypeScript a JavaScript
 - `pnpm start` - Ejecutar build de producción
+
+### Migraciones
+- `pnpm migrate:create <nombre>` - Crear nueva migración
+- `pnpm migrate:up` - Ejecutar migraciones pendientes
+- `pnpm migrate:down` - Revertir última migración (solo dev)
+- `pnpm migrate:status` - Ver estado de migraciones
+
+📖 **Documentación completa**: [docs/migrations.md](./docs/migrations.md)
 
 ## 🔗 Enlaces
 
