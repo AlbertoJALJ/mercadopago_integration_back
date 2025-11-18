@@ -11,7 +11,7 @@ import {
   getOrderByPaymentId,
 } from './services/orderService.js';
 import type { CreateOrderRequest, CreateOrderResponse } from './types/index.js';
-import { testConnection } from './config/database.js';
+import { testConnection, query } from './config/database.js';
 
 dotenv.config();
 
@@ -154,6 +154,13 @@ app.post('/api/orders', async (req, res) => {
     });
     
     console.log('✅ Preferencia creada:', result.id);
+    console.log('🔍 Detalles de la preferencia:', JSON.stringify({
+      id: result.id,
+      init_point: result.init_point,
+      sandbox_init_point: result.sandbox_init_point,
+      back_urls: result.back_urls,
+      auto_return: result.auto_return,
+    }, null, 2));
 
     // Update order with preference ID
     await updateOrderPreferenceId(order.id, result.id!);
@@ -171,6 +178,43 @@ app.post('/api/orders', async (req, res) => {
     }
     console.error('Error creating order:', error);
     res.status(500).json({ error: 'Error al crear la orden' });
+  }
+});
+
+// GET /api/orders/:id/status - Verificar estado de orden
+app.get('/api/orders/:id/status', async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    
+    if (isNaN(orderId)) {
+      return res.status(400).json({ error: 'ID de orden inválido' });
+    }
+
+    const result = await query<{ 
+      id: number; 
+      status: string; 
+      payment_status: string | null;
+      payment_id: string | null;
+    }>(
+      'SELECT id, status, payment_status, payment_id FROM orders WHERE id = $1',
+      [orderId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Orden no encontrada' });
+    }
+
+    const order = result.rows[0];
+    
+    res.json({
+      order_id: order.id,
+      status: order.status,
+      payment_status: order.payment_status || 'pending',
+      payment_id: order.payment_id,
+    });
+  } catch (error) {
+    console.error('Error fetching order status:', error);
+    res.status(500).json({ error: 'Error al obtener estado de la orden' });
   }
 });
 
