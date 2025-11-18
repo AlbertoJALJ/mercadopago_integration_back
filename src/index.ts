@@ -9,6 +9,8 @@ import {
   updateOrderStatus,
   updateOrderPreferenceId,
   getOrderByPaymentId,
+  getAllOrders,
+  getOrderWithItems,
 } from './services/orderService.js';
 import type { CreateOrderRequest, CreateOrderResponse } from './types/index.js';
 import { testConnection, query } from './config/database.js';
@@ -181,6 +183,39 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+// GET /api/orders - Obtener todos los pedidos
+app.get('/api/orders', async (req, res) => {
+  try {
+    const orders = await getAllOrders();
+    res.json(orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: 'Error al obtener pedidos' });
+  }
+});
+
+// GET /api/orders/:id - Obtener detalles de un pedido
+app.get('/api/orders/:id', async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.id);
+    
+    if (isNaN(orderId)) {
+      return res.status(400).json({ error: 'ID de pedido inválido' });
+    }
+
+    const order = await getOrderWithItems(orderId);
+
+    if (!order) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+
+    res.json(order);
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    res.status(500).json({ error: 'Error al obtener pedido' });
+  }
+});
+
 // GET /api/orders/:id/status - Verificar estado de orden
 app.get('/api/orders/:id/status', async (req, res) => {
   try {
@@ -248,8 +283,9 @@ app.post('/api/webhook', async (req, res) => {
 
       // Update order status based on payment status
       let orderStatus: string;
+      const paymentStatus = paymentInfo.status || 'pending';
       
-      switch (paymentInfo.status) {
+      switch (paymentStatus) {
         case 'approved':
           orderStatus = 'completed';
           break;
@@ -265,9 +301,9 @@ app.post('/api/webhook', async (req, res) => {
           orderStatus = 'pending';
       }
 
-      await updateOrderStatus(orderId, orderStatus, paymentId.toString());
+      await updateOrderStatus(orderId, orderStatus, paymentId.toString(), paymentStatus);
       
-      console.log(`✅ Order ${orderId} updated to status: ${orderStatus}`);
+      console.log(`✅ Order ${orderId} updated: status=${orderStatus}, payment_status=${paymentStatus}`);
     }
 
     res.sendStatus(200);
@@ -280,6 +316,55 @@ app.post('/api/webhook', async (req, res) => {
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// DEV ONLY: Simular webhook (útil para desarrollo local sin ngrok)
+app.post('/api/dev/simulate-webhook/:orderId', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  try {
+    const orderId = parseInt(req.params.orderId);
+    const { payment_status = 'approved' } = req.body;
+
+    if (isNaN(orderId)) {
+      return res.status(400).json({ error: 'ID de orden inválido' });
+    }
+
+    // Simular actualización de webhook
+    const fakePaymentId = `SIMULATED_${Date.now()}`;
+    let orderStatus: string;
+
+    switch (payment_status) {
+      case 'approved':
+        orderStatus = 'completed';
+        break;
+      case 'pending':
+        orderStatus = 'processing';
+        break;
+      case 'rejected':
+        orderStatus = 'cancelled';
+        break;
+      default:
+        orderStatus = 'pending';
+    }
+
+    await updateOrderStatus(orderId, orderStatus, fakePaymentId, payment_status);
+
+    console.log(`🧪 [DEV] Webhook simulado - Orden ${orderId}: ${payment_status}`);
+
+    res.json({
+      success: true,
+      message: 'Webhook simulado exitosamente',
+      order_id: orderId,
+      payment_status,
+      order_status: orderStatus,
+    });
+  } catch (error) {
+    console.error('Error simulando webhook:', error);
+    res.status(500).json({ error: 'Error al simular webhook' });
+  }
 });
 
 // Start server

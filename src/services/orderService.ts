@@ -49,13 +49,21 @@ export async function createOrder(
 export async function updateOrderStatus(
   orderId: number,
   status: string,
-  paymentId?: string
+  paymentId?: string,
+  paymentStatus?: string
 ): Promise<void> {
-  if (paymentId) {
+  if (paymentId && paymentStatus) {
     await query(
-      'UPDATE orders SET status = $1, mercadopago_payment_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3',
-      [status, paymentId, orderId]
+      `UPDATE orders 
+       SET status = $1, 
+           payment_id = $2, 
+           payment_status = $3,
+           mercadopago_payment_id = $2,
+           updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $4`,
+      [status, paymentId, paymentStatus, orderId]
     );
+    console.log(`✅ Orden ${orderId} actualizada: status=${status}, payment_status=${paymentStatus}`);
   } else {
     await query(
       'UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
@@ -88,4 +96,45 @@ export async function getOrderById(orderId: number): Promise<Order | null> {
     [orderId]
   );
   return result.rows[0] || null;
+}
+
+export async function getAllOrders(): Promise<Order[]> {
+  const result = await query<Order>(
+    `SELECT * FROM orders 
+     ORDER BY created_at DESC`
+  );
+  return result.rows;
+}
+
+export async function getOrderWithItems(orderId: number) {
+  const orderResult = await query<Order>(
+    'SELECT * FROM orders WHERE id = $1',
+    [orderId]
+  );
+
+  if (orderResult.rows.length === 0) {
+    return null;
+  }
+
+  const order = orderResult.rows[0];
+
+  const itemsResult = await query<OrderItem & { product_name: string; product_image: string }>(
+    `SELECT 
+      oi.id,
+      oi.order_id,
+      oi.product_id,
+      oi.quantity,
+      oi.price,
+      p.name as product_name,
+      p.image_url as product_image
+     FROM order_items oi
+     JOIN products p ON oi.product_id = p.id
+     WHERE oi.order_id = $1`,
+    [orderId]
+  );
+
+  return {
+    ...order,
+    items: itemsResult.rows,
+  };
 }

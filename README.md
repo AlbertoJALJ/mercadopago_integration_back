@@ -257,6 +257,33 @@ const createOrderSchema = z.object({
 - Para desarrollo local usar: ngrok, localtunnel, etc.
 - Configurar `WEBHOOK_URL` con la URL pública
 
+## 🧪 Testing del Flujo de Pago
+
+### Opción 1: Simular Webhook (Recomendado para desarrollo)
+
+Después de hacer un pago de prueba en MercadoPago, simula el webhook manualmente:
+
+```bash
+# Reemplaza {order_id} con el ID de tu orden
+curl -X POST http://localhost:3001/api/dev/simulate-webhook/{order_id} \
+  -H "Content-Type: application/json" \
+  -d '{"payment_status": "approved"}'
+```
+
+Ejemplo:
+```bash
+# Simular pago aprobado para la orden 24
+curl -X POST http://localhost:3001/api/dev/simulate-webhook/24 \
+  -H "Content-Type: application/json" \
+  -d '{"payment_status": "approved"}'
+```
+
+Estados disponibles: `approved`, `rejected`, `pending`
+
+### Opción 2: Usar ngrok (Para webhooks reales)
+
+Ver documentación completa en: `docs/testing-webhooks.md`
+
 ## 📝 Scripts
 
 - `pnpm dev` - Servidor con hot reload (tsx watch)
