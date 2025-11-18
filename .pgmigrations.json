@@ -3,7 +3,7 @@
     "env": "DATABASE_URL"
   },
   "migrations-dir": "migrations",
-  "migration-file-language": "ts",
+  "migration-file-language": "js",
   "dir": "migrations",
   "schema": "public",
   "decamelize": false,
