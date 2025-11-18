@@ -295,7 +295,7 @@ Ver documentación completa en: `docs/testing-webhooks.md`
 - `pnpm migrate:create <nombre>` - Crear nueva migración
 - `pnpm migrate:up` - Ejecutar migraciones pendientes
 - `pnpm migrate:down` - Revertir última migración (solo dev)
-- `pnpm migrate:status` - Ver estado de migraciones
+- `pnpm migrate:fake` - Marcar migraciones como aplicadas sin ejecutarlas
 
 📖 **Documentación completa**: [docs/migrations.md](./docs/migrations.md)
 
