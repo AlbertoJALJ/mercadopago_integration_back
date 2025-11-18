@@ -40,50 +40,58 @@ pnpm migrate:down
 ### Ver Estado de Migraciones
 
 ```bash
-pnpm migrate:status
+# Ver qué migraciones hay
+ls migrations/
+
+# Ver tabla de migraciones en la DB
+psql -U alberto -d tienda_online -c "SELECT * FROM pgmigrations;"
 ```
 
-Muestra qué migraciones están aplicadas y cuáles faltan.
+Node-pg-migrate no tiene comando `status` integrado.
 
 ## Escribir Migraciones
 
 ### Estructura Básica
 
-```typescript
-import { MigrationBuilder, ColumnDefinitions } from 'node-pg-migrate';
-
-export const shorthands: ColumnDefinitions | undefined = undefined;
-
-export async function up(pgm: MigrationBuilder): Promise<void> {
+```javascript
+/**
+ * @param pgm {import('node-pg-migrate').MigrationBuilder}
+ */
+export async function up(pgm) {
   // Cambios a aplicar
 }
 
-export async function down(pgm: MigrationBuilder): Promise<void> {
+/**
+ * @param pgm {import('node-pg-migrate').MigrationBuilder}
+ */
+export async function down(pgm) {
   // Cómo revertir los cambios
 }
 ```
+
+> **Nota**: Usamos JavaScript con JSDoc en lugar de TypeScript para evitar problemas de compatibilidad con ESM modules.
 
 ### Ejemplos Comunes
 
 #### Agregar Columna
 
-```typescript
-export async function up(pgm: MigrationBuilder): Promise<void> {
+```javascript
+export async function up(pgm) {
   pgm.addColumns('orders', {
     shipping_address: { type: 'text' },
     tracking_number: { type: 'varchar(100)' },
   });
 }
 
-export async function down(pgm: MigrationBuilder): Promise<void> {
+export async function down(pgm) {
   pgm.dropColumns('orders', ['shipping_address', 'tracking_number']);
 }
 ```
 
 #### Crear Tabla
 
-```typescript
-export async function up(pgm: MigrationBuilder): Promise<void> {
+```javascript
+export async function up(pgm) {
   pgm.createTable('categories', {
     id: 'id',
     name: { type: 'varchar(255)', notNull: true },
@@ -92,21 +100,21 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   });
 }
 
-export async function down(pgm: MigrationBuilder): Promise<void> {
+export async function down(pgm) {
   pgm.dropTable('categories');
 }
 ```
 
 #### Crear Índice
 
-```typescript
-export async function up(pgm: MigrationBuilder): Promise<void> {
+```javascript
+export async function up(pgm) {
   pgm.createIndex('products', 'category_id', { 
     name: 'idx_products_category' 
   });
 }
 
-export async function down(pgm: MigrationBuilder): Promise<void> {
+export async function down(pgm) {
   pgm.dropIndex('products', 'category_id', { 
     name: 'idx_products_category' 
   });
@@ -115,14 +123,14 @@ export async function down(pgm: MigrationBuilder): Promise<void> {
 
 #### Modificar Columna
 
-```typescript
-export async function up(pgm: MigrationBuilder): Promise<void> {
+```javascript
+export async function up(pgm) {
   pgm.alterColumn('products', 'price', {
     type: 'decimal(12,2)',  // Cambiar de (10,2) a (12,2)
   });
 }
 
-export async function down(pgm: MigrationBuilder): Promise<void> {
+export async function down(pgm) {
   pgm.alterColumn('products', 'price', {
     type: 'decimal(10,2)',
   });
@@ -131,8 +139,8 @@ export async function down(pgm: MigrationBuilder): Promise<void> {
 
 #### Ejecutar SQL Directo
 
-```typescript
-export async function up(pgm: MigrationBuilder): Promise<void> {
+```javascript
+export async function up(pgm) {
   pgm.sql(`
     UPDATE products 
     SET stock = 0 
@@ -140,7 +148,7 @@ export async function up(pgm: MigrationBuilder): Promise<void> {
   `);
 }
 
-export async function down(pgm: MigrationBuilder): Promise<void> {
+export async function down(pgm) {
   // No hay forma de revertir esto
   // Dejar vacío si no es reversible
 }
@@ -197,7 +205,7 @@ pnpm migrate:up
 
 ## Tipos de Datos Comunes
 
-```typescript
+```javascript
 {
   // Números
   id: 'id',                                    // SERIAL PRIMARY KEY
