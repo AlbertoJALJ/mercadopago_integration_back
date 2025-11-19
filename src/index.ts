@@ -557,6 +557,25 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// DEBUG: Verificar credenciales (DEV ONLY)
+app.get('/api/dev/check-credentials', (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  const token = process.env.MERCADOPAGO_ACCESS_TOKEN || '';
+  
+  res.json({
+    has_token: !!token,
+    is_test: token.startsWith('TEST-'),
+    is_production: token.startsWith('APP_USR-'),
+    is_placeholder: token.includes('REEMPLAZA'),
+    token_preview: token.substring(0, 15) + '...' + token.substring(token.length - 10),
+    token_length: token.length,
+    valid: token.startsWith('TEST-') && token.length > 50 && !token.includes('REEMPLAZA')
+  });
+});
+
 // DEV ONLY: Simular webhook (útil para desarrollo local sin ngrok)
 app.post('/api/dev/simulate-webhook/:orderId', async (req, res) => {
   if (process.env.NODE_ENV === 'production') {
