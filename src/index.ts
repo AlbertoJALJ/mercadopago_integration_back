@@ -567,12 +567,12 @@ app.get('/api/dev/check-credentials', (req, res) => {
   
   res.json({
     has_token: !!token,
-    is_test: token.startsWith('TEST-'),
-    is_production: token.startsWith('APP_USR-'),
+    token_prefix: token.startsWith('TEST-') ? 'TEST-' : token.startsWith('APP_USR-') ? 'APP_USR-' : 'UNKNOWN',
     is_placeholder: token.includes('REEMPLAZA'),
     token_preview: token.substring(0, 15) + '...' + token.substring(token.length - 10),
     token_length: token.length,
-    valid: token.startsWith('TEST-') && token.length > 50 && !token.includes('REEMPLAZA')
+    valid: token.length > 50 && !token.includes('REEMPLAZA'),
+    note: 'MercadoPago cambió los formatos. Ya no se puede identificar TEST vs PROD solo por el prefijo. Verifica en el panel de dónde copiaste el token.'
   });
 });
 

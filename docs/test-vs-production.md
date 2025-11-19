@@ -18,12 +18,37 @@ Intentar **reembolsar un pago de PRODUCCIÓN** usando **credenciales de TEST** (
 
 ---
 
+## ⚠️ IMPORTANTE: Nuevo Formato de Credenciales
+
+**MercadoPago cambió el formato de tokens en 2024.**
+
+### Antes (formato antiguo):
+```
+TEST-1234...     → Credenciales de TEST
+APP_USR-1234...  → Credenciales de PRODUCCIÓN
+```
+
+### Ahora (formato nuevo):
+```
+APP_USR-1234...  → Puede ser TEST o PRODUCCIÓN
+```
+
+**Ya NO se puede identificar el ambiente solo por el prefijo.**
+
+La única forma de saber si es TEST o PRODUCCIÓN es **recordar de qué sección del panel lo copiaste**:
+- **"Credenciales de prueba"** → TEST
+- **"Credenciales de producción"** → PRODUCCIÓN
+
+---
+
 ## 📊 Diferencias entre Ambientes
 
 | Aspecto | TEST | PRODUCCIÓN |
 |---------|------|------------|
-| **Access Token** | `TEST-700889...` | `APP_USR-700889...` |
-| **Public Key** | `TEST-8e9f8b...` | `APP_USR-8e9f8b...` |
+| **Access Token** | `APP_USR-700889...` | `APP_USR-700889...` |
+| **Public Key** | `APP_USR-8e9f8b...` | `APP_USR-8e9f8b...` |
+| **Formato** | ⚠️ Mismo formato | ⚠️ Mismo formato |
+| **Identificación** | Por sección del panel | Por sección del panel |
 | **Payment IDs** | Ambiente aislado | Ambiente aislado |
 | **Dinero** | 💸 Ficticio | 💰 Real |
 | **Tarjetas** | 4242... | Reales |

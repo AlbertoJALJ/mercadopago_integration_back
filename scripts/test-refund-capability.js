@@ -18,20 +18,25 @@ if (!ACCESS_TOKEN) {
 
 console.log('🔍 Verificando configuración de MercadoPago...\n');
 
-// Verificar tipo de credencial
-const isTest = ACCESS_TOKEN.startsWith('TEST-');
-const isProduction = ACCESS_TOKEN.startsWith('APP_USR-');
+// Verificar formato de credencial
+const startsWithTest = ACCESS_TOKEN.startsWith('TEST-');
+const startsWithAppUsr = ACCESS_TOKEN.startsWith('APP_USR-');
 
 console.log('📋 Información de Credenciales:');
-console.log('   Tipo:', isTest ? '✅ TEST' : isProduction ? '⚠️ PRODUCCIÓN' : '❌ DESCONOCIDO');
+console.log('   Prefijo:', startsWithTest ? 'TEST-' : startsWithAppUsr ? 'APP_USR-' : 'OTRO');
 console.log('   Longitud:', ACCESS_TOKEN.length);
 console.log('   Preview:', ACCESS_TOKEN.substring(0, 20) + '...\n');
 
-if (!isTest) {
-  console.error('❌ No estás usando credenciales de TEST');
-  console.log('   Las credenciales de TEST deben empezar con "TEST-"');
-  process.exit(1);
-}
+console.log('⚠️  IMPORTANTE:');
+console.log('   MercadoPago cambió el formato de tokens.');
+console.log('   Ya no se puede identificar TEST vs PRODUCCIÓN solo por el prefijo.');
+console.log('   Ambos pueden empezar con APP_USR-\n');
+
+console.log('🔍 Para verificar el ambiente:');
+console.log('   1. Ve al panel: https://www.mercadopago.com.mx/developers/panel');
+console.log('   2. Verifica en qué sección copiaste el token:');
+console.log('      - "Credenciales de prueba" → TEST');
+console.log('      - "Credenciales de producción" → PRODUCCIÓN\n');
 
 // Intentar obtener información de pagos
 try {
